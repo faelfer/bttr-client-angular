@@ -1,0 +1,99 @@
+<div class="auth-layout">
+  <section class="auth-story" aria-label="Sobre o Bttr">
+    <a class="brand" routerLink="/"
+      ><span class="brand-icon"><i class="pi pi-chart-bar" aria-hidden="true"></i></span>bttr.</a
+    >
+    <div class="story-body">
+      <span class="story-tag"
+        ><i class="pi pi-sparkles" aria-hidden="true"></i> A SUA MELHOR VERSÃO É UMA PRÁTICA</span
+      >
+      <h1>Talento é um começo.<br /><em>Constância é o caminho.</em></h1>
+      <p>
+        Transforme pequenos momentos de dedicação em grandes conquistas. Uma habilidade, um dia de
+        cada vez.
+      </p>
+      <div class="growth-art" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+        <div class="growth-label"><i class="pi pi-arrow-up-right"></i> Cada passo conta.</div>
+      </div>
+    </div>
+    <span class="story-footer">Menos pressa. Mais progresso.</span>
+  </section>
+  <main class="auth-main">
+    <div class="auth-form">
+      <span class="eyebrow">BEM-VINDO AO BTTR</span>
+      <h2>{{ heading }}</h2>
+      <p class="muted">{{ subtitle }}</p>
+      <app-status [busy]="busy()" [error]="error()" />
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        @if (mode === 'signup') {
+          <div class="field">
+            <label for="username">Nome de usuário</label
+            ><input
+              pInputText
+              id="username"
+              formControlName="username"
+              autocomplete="username"
+              placeholder="Como podemos chamar você?"
+            /><app-field-error
+              [control]="form.controls.username"
+              message="Informe um nome entre 2 e 100 caracteres."
+            />
+          </div>
+        }
+        <div class="field">
+          <label for="email">E-mail</label
+          ><input
+            pInputText
+            id="email"
+            type="email"
+            formControlName="email"
+            autocomplete="email"
+            placeholder="voce@exemplo.com"
+          /><app-field-error [control]="form.controls.email" message="Informe um e-mail válido." />
+        </div>
+        @if (mode !== 'forgot') {
+          <div class="field">
+            <label for="password">Senha</label
+            ><input
+              pInputText
+              id="password"
+              type="password"
+              formControlName="password"
+              [autocomplete]="mode === 'signup' ? 'new-password' : 'current-password'"
+              placeholder="Sua senha"
+            />
+            @if (mode === 'signup') {
+              <small>De 4 a 128 caracteres, com maiúscula, minúscula, número e símbolo.</small>
+            }
+            <app-field-error
+              [control]="form.controls.password"
+              message="Informe uma senha válida."
+            />
+          </div>
+        }
+        @if (mode === 'signin') {
+          <a class="forgot-link" routerLink="/forgot-password">Esqueceu a senha?</a>
+        }
+        <p-button
+          [ariaLabel]="submitLabel"
+          [label]="submitLabel"
+          type="submit"
+          icon="pi pi-arrow-right"
+          iconPos="right"
+          [loading]="busy()"
+          [disabled]="busy()"
+          styleClass="full-width"
+        />
+      </form>
+      <p class="auth-switch">
+        @if (mode === 'signin') {
+          Ainda não tem uma conta? <a routerLink="/sign-up">Cadastre-se</a>
+        } @else {
+          <a routerLink="/">Voltar ao login</a>
+        }
+      </p>
+    </div>
+    <span class="auth-footnote">Seu tempo merece um propósito.</span>
+  </main>
+</div>
