@@ -5,6 +5,8 @@ out-tsc/
 coverage/
 playwright-report/
 test-results/
+lighthouse-report/
+.lighthouseci/
 .ci/
 .env
 *.log

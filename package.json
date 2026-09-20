@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "engines": {
-    "node": ">=22.12.0 <23 || >=24.0.0"
+    "node": ">=22.19.0 <23 || >=24.0.0"
   },
   "scripts": {
     "start": "ng serve",
@@ -16,6 +16,8 @@
     "test:e2e": "playwright test",
     "test-e2e": "npm run test:e2e",
     "test:e2e:report": "playwright show-report",
+    "test:lighthouse": "lhci autorun",
+    "test:lighthouse:ci": "npm run build && npm run test:lighthouse",
     "lint": "npm run lint:code && npm run lint:styles",
     "lint:code": "eslint .",
     "lint:styles": "stylelint \"src/**/*.css\"",
@@ -45,6 +47,7 @@
     "@angular/cli": "^21.2.0",
     "@angular/compiler-cli": "^21.2.0",
     "@eslint/js": "^9.39.0",
+    "@lhci/cli": "0.15.1",
     "@playwright/test": "1.63.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.0.0",
@@ -59,5 +62,15 @@
     "stylelint-config-standard": "^40.0.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.56.0"
+  },
+  "overrides": {
+    "@lhci/cli": {
+      "lighthouse": "13.5.0",
+      "uuid": "11.1.1"
+    },
+    "@lhci/utils": {
+      "lighthouse": "13.5.0"
+    },
+    "tmp": "0.2.7"
   }
 }
