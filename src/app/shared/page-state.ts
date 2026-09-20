@@ -4,11 +4,18 @@ import { Router } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ApiService } from '../core/api.service';
 import { Message } from '../core/models';
+
+function responseMessage(value: unknown): string | null {
+  if (typeof value !== 'object' || value === null || !('message' in value)) return null;
+  return typeof value.message === 'string' ? value.message : null;
+}
+
 export function errorMessage(error: unknown): string {
   if (error instanceof HttpErrorResponse) {
     if (error.status === 0)
       return 'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.';
-    if (typeof error.error?.message === 'string') return error.error.message;
+    const detail = responseMessage(error.error);
+    if (detail) return detail;
     if (error.status === 404) return 'Registro não encontrado.';
   }
   return 'Não foi possível concluir a operação. Tente novamente.';

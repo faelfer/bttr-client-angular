@@ -42,5 +42,5 @@ export function statistics(daily: number, total: number, date: Date) {
 export function duration(minutes: number): string {
   const hours = Math.floor(minutes / 60),
     rest = minutes % 60;
-  return hours ? `${hours}h${rest ? ` ${rest}min` : ''}` : `${rest}min`;
+  return hours ? `${String(hours)}h${rest ? ` ${String(rest)}min` : ''}` : `${String(rest)}min`;
 }

@@ -16,6 +16,7 @@ describe('Sessão e autorização', () => {
   let http: HttpTestingController;
   let client: HttpClient;
   let router: Router;
+  let navigateSpy: jest.SpiedFunction<Router['navigate']>;
   beforeEach(() => {
     localStorage.clear();
     TestBed.configureTestingModule({
@@ -31,7 +32,7 @@ describe('Sessão e autorização', () => {
     http = TestBed.inject(HttpTestingController);
     client = TestBed.inject(HttpClient);
     router = TestBed.inject(Router);
-    jest.spyOn(router, 'navigate').mockResolvedValue(true);
+    navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
   });
   afterEach(() => {
     http.verify();
@@ -66,7 +67,7 @@ describe('Sessão e autorização', () => {
     client.get('/api/users/profile').subscribe({ error: () => undefined });
     http.expectOne('/api/users/profile').flush({}, { status: 401, statusText: 'Unauthorized' });
     expect(session.authenticated()).toBe(false);
-    expect(router.navigate).toHaveBeenCalledTimes(1);
+    expect(navigateSpy).toHaveBeenCalledTimes(1);
   });
   it('não encerra sessão em falha de credenciais no endpoint público', () => {
     session.set('abc');

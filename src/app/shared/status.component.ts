@@ -30,5 +30,5 @@ export class StatusComponent {
   readonly busy = input(false);
   readonly error = input('');
   readonly retryable = input(false);
-  readonly retry = output<void>();
+  readonly retry = output();
 }

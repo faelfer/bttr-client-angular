@@ -1,5 +1,28 @@
 import { expect, Page } from '@playwright/test';
-import { Skill, TimeEntry } from '../src/app/core/models';
+import { Skill, SkillInput, TimeEntry, TimeInput } from '../src/app/core/models';
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function skillInput(body: Record<string, unknown> | null): SkillInput {
+  const name = body?.['name'];
+  const daily = body?.['daily'];
+  if (typeof name !== 'string' || typeof daily !== 'number') {
+    throw new Error('Payload de habilidade inválido no mock da API.');
+  }
+  return { name, daily };
+}
+
+function timeInput(body: Record<string, unknown> | null): TimeInput {
+  const skillId = body?.['skill_id'];
+  const minutes = body?.['minutes'];
+  if (typeof skillId !== 'number' || typeof minutes !== 'number') {
+    throw new Error('Payload de tempo inválido no mock da API.');
+  }
+  return { skill_id: skillId, minutes };
+}
+
 export async function mockApi(
   page: Page,
   options: { authenticated?: boolean; empty?: boolean } = {},
@@ -40,7 +63,8 @@ export async function mockApi(
     const url = new URL(request.url());
     const path = url.pathname.replace('/api', '');
     const method = request.method();
-    const body = request.postDataJSON();
+    const rawBody: unknown = request.postDataJSON();
+    const body = isRecord(rawBody) ? rawBody : null;
     state.requests.push({ method, path, body, query: url.searchParams });
     const respond = (json: unknown, status = 200) => route.fulfill({ status, json });
     if (state.failNext === path) {
@@ -110,30 +134,38 @@ export async function mockApi(
       await respond(time ? { time } : { message: 'Tempo não encontrado.' }, time ? 200 : 404);
       return;
     }
-    if (path === '/skills/create_skill') state.skills.unshift({ id: 99, created, ...body });
-    else if (path.startsWith('/skills/update_skill_by_id/'))
-      Object.assign(
-        state.skills.find((item) => item.id === id)!,
-        body,
-      );
-    else if (path.startsWith('/skills/delete_skill_by_id/')) {
+    if (path === '/skills/create_skill') {
+      state.skills.unshift({ id: 99, created, ...skillInput(body) });
+    } else if (path.startsWith('/skills/update_skill_by_id/')) {
+      const skill = state.skills.find((item) => item.id === id);
+      if (!skill) {
+        await respond({ message: 'Habilidade não encontrada.' }, 404);
+        return;
+      }
+      Object.assign(skill, skillInput(body));
+    } else if (path.startsWith('/skills/delete_skill_by_id/')) {
       state.skills = state.skills.filter((item) => item.id !== id);
       state.times = state.times.filter((time) => time.skill.id !== id);
-    } else if (path === '/times/create_time')
-      state.times.unshift({
-        id: 99,
-        created,
-        minutes: body.minutes,
-        skill: state.skills.find((item) => item.id === body.skill_id)!,
-      });
-    else if (path.startsWith('/times/update_time_by_id/'))
-      Object.assign(
-        state.times.find((item) => item.id === id)!,
-        { minutes: body.minutes, skill: state.skills.find((item) => item.id === body.skill_id)! },
-      );
-    else if (path.startsWith('/times/delete_time_by_id/'))
+    } else if (path === '/times/create_time') {
+      const input = timeInput(body);
+      const skill = state.skills.find((item) => item.id === input.skill_id);
+      if (!skill) {
+        await respond({ message: 'Habilidade não encontrada.' }, 404);
+        return;
+      }
+      state.times.unshift({ id: 99, created, minutes: input.minutes, skill });
+    } else if (path.startsWith('/times/update_time_by_id/')) {
+      const input = timeInput(body);
+      const entry = state.times.find((item) => item.id === id);
+      const skill = state.skills.find((item) => item.id === input.skill_id);
+      if (!entry || !skill) {
+        await respond({ message: 'Tempo não encontrado.' }, 404);
+        return;
+      }
+      Object.assign(entry, { minutes: input.minutes, skill });
+    } else if (path.startsWith('/times/delete_time_by_id/')) {
       state.times = state.times.filter((item) => item.id !== id);
-    else {
+    } else {
       await respond({ message: `Endpoint não simulado: ${method} ${path}` }, 500);
       return;
     }

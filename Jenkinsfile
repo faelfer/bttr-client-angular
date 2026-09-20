@@ -22,9 +22,9 @@ pipeline {
             }
         }
 
-        stage('Unit tests') {
+        stage('Quality and unit tests') {
             steps {
-                gitlabCommitStatus(name: 'unit-tests') {
+                gitlabCommitStatus(name: 'quality') {
                     sh '''
                         command -v docker >/dev/null || {
                             echo 'O agente Jenkins precisa de Docker CLI e Compose v2.' >&2
@@ -48,7 +48,7 @@ pipeline {
                         export CI_UID="$(id -u)" CI_GID="$(id -g)"
                         export COMPOSE_PROJECT_NAME="bttr-client-ci-$(printf '%s' "$JOB_NAME" | cksum | cut -d ' ' -f 1)-$BUILD_NUMBER"
                         trap 'docker compose -f compose.ci.yaml down --remove-orphans' EXIT
-                        docker compose -f compose.ci.yaml run --rm -T unit-tests
+                        docker compose -f compose.ci.yaml run --rm -T ci
                     '''
                 }
             }

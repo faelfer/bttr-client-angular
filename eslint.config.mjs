@@ -18,10 +18,21 @@ export default tseslint.config(
     files: ['**/*.ts'],
     extends: [
       eslint.configs.recommended,
-      ...tseslint.configs.recommended,
+      ...tseslint.configs.strictTypeChecked,
+      ...tseslint.configs.stylisticTypeChecked,
       ...angular.configs.tsRecommended,
     ],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
     processor: angular.processInlineTemplates,
+    rules: {
+      '@typescript-eslint/no-extraneous-class': ['error', { allowWithDecorator: true }],
+      '@typescript-eslint/unbound-method': ['error', { ignoreStatic: true }],
+    },
   },
   {
     files: ['**/*.html'],

@@ -100,13 +100,14 @@ import { Skill } from '../../core/models';
   `,
 })
 export class StatisticsComponent extends PageState implements OnInit {
-  readonly id = inject(ActivatedRoute).snapshot.paramMap.get('skillId')!;
+  readonly id = inject(ActivatedRoute).snapshot.paramMap.get('skillId') ?? '';
   readonly today = new Date();
   readonly skill = signal<Skill | null>(null);
   readonly total = signal(0);
-  readonly progress = computed(() =>
-    this.skill() ? statistics(this.skill()!.daily, this.total(), this.today) : null,
-  );
+  readonly progress = computed(() => {
+    const skill = this.skill();
+    return skill ? statistics(skill.daily, this.total(), this.today) : null;
+  });
   readonly cappedPercentage = computed(() => Math.min(100, this.progress()?.percentage ?? 0));
   ngOnInit(): void {
     this.load();

@@ -6,7 +6,8 @@ export class SessionService {
   readonly authenticated = computed(() => !!this.token());
   private read(): string | null {
     try {
-      return localStorage.getItem(SESSION_KEY) || null;
+      const token = localStorage.getItem(SESSION_KEY);
+      return token === '' ? null : token;
     } catch {
       return null;
     }

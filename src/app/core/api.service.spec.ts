@@ -17,7 +17,9 @@ describe('Contrato HTTP do Bttr', () => {
     api = TestBed.inject(ApiService);
     http = TestBed.inject(HttpTestingController);
   });
-  afterEach(() => http.verify());
+  afterEach(() => {
+    http.verify();
+  });
   const credentials = { email: 'rafael@example.com', password: 'Ab1!' };
   const profile = { username: 'Rafael', email: credentials.email };
   const skill = { name: 'Angular', daily: 30 };

@@ -9,6 +9,13 @@ import { FieldErrorComponent } from '../../shared/field-error.component';
 import { nonBlank, passwordValidators } from '../../shared/validators';
 import { SessionService } from '../../core/session.service';
 import { safeReturnUrl } from '../../core/auth';
+
+type AuthMode = 'signin' | 'signup' | 'forgot';
+
+function authMode(value: unknown): AuthMode {
+  return value === 'signup' || value === 'forgot' ? value : 'signin';
+}
+
 @Component({
   selector: 'app-auth',
   imports: [
@@ -24,7 +31,7 @@ import { safeReturnUrl } from '../../core/auth';
 export class AuthComponent extends PageState {
   private readonly route = inject(ActivatedRoute);
   private readonly session = inject(SessionService);
-  readonly mode: 'signin' | 'signup' | 'forgot' = this.route.snapshot.data['mode'];
+  readonly mode = authMode(this.route.snapshot.data['mode']);
   readonly form = inject(FormBuilder).nonNullable.group({
     username: ['', this.mode === 'signup' ? [nonBlank, Validators.maxLength(100)] : []],
     email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]],

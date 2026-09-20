@@ -1,17 +1,27 @@
+x-node-service: &node-service
+  image: node:22-bookworm-slim
+  init: true
+  working_dir: /workspace
+  user: '${CI_UID:-1000}:${CI_GID:-1000}'
+  environment:
+    CI: 'true'
+    HOME: /tmp
+    NPM_CONFIG_CACHE: /tmp/npm-cache
+  volumes:
+    - type: bind
+      source: ${CI_WORKSPACE:-.}
+      target: /workspace
+
 services:
+  ci:
+    <<: *node-service
+    command:
+      - sh
+      - -c
+      - npm ci && npm run ci
+
   unit-tests:
-    image: node:22-bookworm-slim
-    init: true
-    working_dir: /workspace
-    user: "${CI_UID:-1000}:${CI_GID:-1000}"
-    environment:
-      CI: "true"
-      HOME: /tmp
-      NPM_CONFIG_CACHE: /tmp/npm-cache
-    volumes:
-      - type: bind
-        source: ${CI_WORKSPACE:-.}
-        target: /workspace
+    <<: *node-service
     command:
       - sh
       - -c

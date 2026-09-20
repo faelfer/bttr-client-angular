@@ -43,9 +43,13 @@ test('consulta estatísticas e cria, edita e exclui tempo', async ({ page }) => 
     .getByRole('link', { name: 'Ver estatísticas' })
     .click();
   await expect(page.getByRole('heading', { name: 'Sua evolução neste mês' })).toBeVisible();
-  const query = state.requests.find((item) => item.path === '/times/times_by_date')!.query;
+  const statisticsRequest = state.requests.find((item) => item.path === '/times/times_by_date');
+  if (!statisticsRequest) throw new Error('A consulta de estatísticas não foi realizada.');
+  const query = statisticsRequest.query;
   expect(query.get('skill_id')).toBe('1');
-  expect(new Date(query.get('date_final')!).getMilliseconds()).toBe(999);
+  const finalDate = query.get('date_final');
+  if (!finalDate) throw new Error('A data final não foi enviada na consulta de estatísticas.');
+  expect(new Date(finalDate).getMilliseconds()).toBe(999);
   await page.getByRole('link', { name: 'Registrar tempo', exact: true }).click();
   await expect(page.getByRole('combobox', { name: 'Habilidade', exact: true })).toContainText(
     'Inglês',

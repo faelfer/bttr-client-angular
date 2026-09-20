@@ -40,6 +40,6 @@ describe('Estatísticas mensais', () => {
     [125, '2h 5min'],
     [1440, '24h'],
   ])('formata %s minutos', (value, label) => {
-    expect(duration(value as number)).toBe(label);
+    expect(duration(value)).toBe(label);
   });
 });

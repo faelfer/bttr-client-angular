@@ -96,7 +96,9 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-`npm run format` formata os arquivos e `npm run lint:fix` aplica correções automáticas. `npm run check` executa formatação, lint, checagem de tipos, Jest, build e Playwright em sequência; instale o navegador antes.
+O ESLint usa análise tipada estrita para TypeScript e as regras recomendadas de código, templates e acessibilidade do Angular. O Stylelint valida o CSS com a configuração padrão, enquanto o Prettier permanece responsável exclusivamente pela formatação. `npm run format` formata os arquivos e `npm run lint:fix` aplica as correções automáticas dos dois linters.
+
+`npm run ci` executa formatação, lint, checagem de tipos e Jest com cobertura. O `Jenkinsfile` chama esse mesmo fluxo pelo serviço `ci` de `compose.ci.yaml`. `npm run check` acrescenta build e Playwright à validação local completa; instale o navegador antes.
 
 Jest verifica contratos HTTP (métodos, caminhos, payloads e parâmetros), sessão, interceptor, guardas, validações, datas e estatísticas. Playwright testa login, cadastro, recuperação, perfil, troca de senha, exclusões, CRUD de habilidades e tempos, paginação, estatísticas, erros, estados vazios e layout em Chromium desktop e celular.
 
