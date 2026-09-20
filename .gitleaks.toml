@@ -1,0 +1,12 @@
+title = "Bttr Client Gitleaks"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Credenciais públicas e deliberadamente falsas do WireMock"
+regexTarget = "secret"
+regexes = [
+  '''mock-access-token''',
+  '''Mock@123''',
+]

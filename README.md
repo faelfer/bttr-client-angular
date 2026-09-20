@@ -94,16 +94,18 @@ npm run test:coverage
 npm run build
 npx playwright install chromium
 npm run test:e2e
+npm run test:e2e:security
 npm run test:lighthouse:ci
+npm run security:audit
 ```
 
 O ESLint usa análise tipada estrita para TypeScript e as regras recomendadas de código, templates e acessibilidade do Angular. O Stylelint valida o CSS com a configuração padrão, enquanto o Prettier permanece responsável exclusivamente pela formatação. `npm run format` formata os arquivos e `npm run lint:fix` aplica as correções automáticas dos dois linters.
 
-`npm run ci` executa formatação, lint, checagem de tipos e Jest com cobertura. O `Jenkinsfile` chama esse mesmo fluxo pelo serviço `ci` de `compose.ci.yaml`. Em seguida, o pipeline obtém o `bttr-server` do GitLab, constrói sua imagem WireMock e executa o Playwright com `compose.e2e.yaml`. Por fim, o build de produção valida os budgets do Angular e o Lighthouse CI mede as rotas públicas três vezes pelo serviço `lighthouse` de `compose.performance.yaml`.
+`npm run ci` executa formatação, lint, checagem de tipos e Jest com cobertura. O `Jenkinsfile` chama esse mesmo fluxo pelo serviço `ci` de `compose.ci.yaml`. Em seguida, o pipeline obtém o `bttr-server` do GitLab, constrói sua imagem WireMock e executa o Playwright com `compose.e2e.yaml`. O build de produção valida os budgets do Angular e o Lighthouse CI mede as rotas públicas três vezes pelo serviço `lighthouse` de `compose.performance.yaml`. Por último, a etapa `Security scans` executa o fluxo reproduzível de `compose.security.yaml`.
 
 O Lighthouse CI permanece fixado em `0.15.1`. Os overrides atualizam Lighthouse e dependências transitivas vulneráveis sem alterar a interface do runner; remova-os quando uma versão do `@lhci/cli` já incorporar essas correções.
 
-Jest verifica contratos HTTP (métodos, caminhos, payloads e parâmetros), sessão, interceptor, guardas, validações, datas e estatísticas. Playwright testa login, cadastro, recuperação, perfil, troca de senha, exclusões, CRUD de habilidades e tempos, paginação, estatísticas, erros, estados vazios e layout em Chromium desktop e celular.
+Jest verifica contratos HTTP (métodos, caminhos, payloads e parâmetros), sessão, interceptor, guardas, validações, datas e estatísticas. Playwright testa login, cadastro, recuperação, perfil, troca de senha, exclusões, CRUD de habilidades e tempos, paginação, estatísticas, erros, estados vazios e layout em Chromium desktop e celular. A especificação `e2e/security.spec.ts` acrescenta regressões contra redirecionamento aberto, XSS e vazamento do token; ela faz parte da suíte completa e pode ser executada isoladamente com `npm run test:e2e:security`.
 
 Os testes E2E iniciam o servidor Angular automaticamente e consultam por HTTP a imagem WireMock mantida em `bttr-server/mock-api`. Cada teste restaura os mappings, cenários e requisições do WireMock para manter o isolamento. A suíte valida a integração do navegador com o contrato simulado, mas **não executa Quarkus, Keycloak, PostgreSQL ou e-mail reais**.
 
@@ -117,6 +119,15 @@ docker compose -f compose.e2e.yaml down --remove-orphans
 
 Por padrão, a execução local usa `../bttr-server/mock-api`. No Jenkins, os parâmetros `BTTR_SERVER_REPOSITORY` e `BTTR_SERVER_BRANCH` controlam o checkout em `.ci/bttr-server`.
 
+O fluxo de segurança usa versões fixadas do Trivy (`0.74.0`), Gitleaks (`8.30.1`) e OWASP ZAP (`2.17.0`). O `npm audit` e o Trivy bloqueiam vulnerabilidades HIGH/CRITICAL, o Gitleaks bloqueia segredos no histórico Git e o ZAP bloqueia alertas HIGH. O ZAP executa os spiders tradicional e client-side, autentica no WireMock e examina somente o build efêmero local — nenhum ambiente externo é atacado. Alertas médios permanecem visíveis nos relatórios para triagem sem bloquear o pipeline.
+
+Com `bttr-server` no diretório irmão, execute exatamente a etapa de segurança usada pelo Jenkins:
+
+```bash
+export CI_UID="$(id -u)" CI_GID="$(id -g)"
+./scripts/security.sh
+```
+
 Para executar fora do Compose, suba `../bttr-server/compose.mock.yaml` na porta 8090 e instale o Chromium do Playwright:
 
 ```bash
@@ -125,7 +136,7 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-Relatórios: `coverage/` (Jest), `playwright-report/` (E2E), `test-results/` (JUnit, capturas e traces de falhas) e `lighthouse-report/` (HTML/JSON de performance). Abra o relatório E2E com `npm run test:e2e:report`. O Lighthouse exige nota de performance mínima de 0,8, LCP de até 3,5 s, CLS de até 0,1 e TBT de até 300 ms, considerando a mediana de três execuções. O limite inicial de LCP acompanha a baseline atual de aproximadamente 3,1 s e deve ser reduzido gradualmente até a meta de 2,5 s. O E2E integrado ao mock privado do GitLab é executado pelo Jenkins; o [workflow do GitHub](.github/workflows/ci.yml) mantém as verificações exclusivas do frontend.
+Relatórios: `coverage/` (Jest), `playwright-report/` (E2E), `test-results/` (JUnit, capturas e traces de falhas), `lighthouse-report/` (HTML/JSON de performance) e `security-reports/` (npm audit, Trivy, Gitleaks e ZAP em JSON, HTML ou SARIF). Abra o relatório E2E com `npm run test:e2e:report`. O Lighthouse exige nota de performance mínima de 0,8, LCP de até 3,5 s, CLS de até 0,1 e TBT de até 300 ms, considerando a mediana de três execuções. O limite inicial de LCP acompanha a baseline atual de aproximadamente 3,1 s e deve ser reduzido gradualmente até a meta de 2,5 s. O E2E integrado ao mock privado do GitLab é executado pelo Jenkins; o [workflow do GitHub](.github/workflows/ci.yml) mantém as verificações exclusivas do frontend.
 
 ## Build e publicação
 

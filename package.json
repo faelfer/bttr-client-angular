@@ -15,6 +15,7 @@
     "test-unit-coverage": "npm run test:coverage",
     "test:e2e": "playwright test",
     "test-e2e": "npm run test:e2e",
+    "test:e2e:security": "playwright test e2e/security.spec.ts",
     "test:e2e:report": "playwright show-report",
     "test:lighthouse": "lhci autorun",
     "test:lighthouse:ci": "npm run build && npm run test:lighthouse",
@@ -24,6 +25,7 @@
     "lint:fix": "npm run lint:code -- --fix && npm run lint:styles -- --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "security:audit": "sh security/npm-audit.sh",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build && npm run test:e2e",
     "ci": "npm run format:check && npm run lint && npm run typecheck && npm run test:coverage -- --ci",
     "typecheck": "tsc --noEmit -p tsconfig.spec.json && tsc --noEmit -p tsconfig.e2e.json"

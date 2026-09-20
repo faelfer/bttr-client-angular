@@ -160,6 +160,43 @@ pipeline {
                 }
             }
         }
+
+        stage('Security scans') {
+            options {
+                timeout(time: 90, unit: 'MINUTES')
+            }
+            steps {
+                gitlabCommitStatus(name: 'security') {
+                    sh '''
+                        command -v docker >/dev/null || {
+                            echo 'O agente Jenkins precisa de Docker CLI e Compose v2.' >&2
+                            exit 1
+                        }
+                        docker compose version
+                        docker info >/dev/null
+
+                        if [ -n "${CI_HOST_JENKINS_HOME:-}" ]; then
+                            case "$WORKSPACE" in
+                                "$JENKINS_HOME"/*)
+                                    export CI_WORKSPACE="$CI_HOST_JENKINS_HOME/${WORKSPACE#"$JENKINS_HOME"/}"
+                                    ;;
+                                *)
+                                    echo 'WORKSPACE deve estar dentro de JENKINS_HOME para mapear o caminho no host.' >&2
+                                    exit 1
+                                    ;;
+                            esac
+                        fi
+
+                        export CI_UID="$(id -u)" CI_GID="$(id -g)"
+                        security_job_hash="$(printf '%s' "$JOB_NAME" | cksum | cut -d ' ' -f 1)"
+                        export COMPOSE_PROJECT_NAME="bttr-client-security-$security_job_hash-$BUILD_NUMBER"
+                        export BTTR_MOCK_API_CONTEXT='.ci/bttr-server/mock-api'
+                        export BTTR_MOCK_API_IMAGE="bttr-server-mock:$security_job_hash-$BUILD_NUMBER"
+                        ./scripts/security.sh
+                    '''
+                }
+            }
+        }
     }
 
     post {
@@ -167,7 +204,7 @@ pipeline {
             junit allowEmptyResults: true,
                 testResults: 'test-results/e2e-junit.xml'
             archiveArtifacts allowEmptyArchive: true,
-                artifacts: 'coverage/**,playwright-report/**,test-results/**,lighthouse-report/**'
+                artifacts: 'coverage/**,playwright-report/**,test-results/**,lighthouse-report/**,security-reports/**'
         }
     }
 }

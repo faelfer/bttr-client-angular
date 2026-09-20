@@ -1,0 +1,116 @@
+env:
+  contexts:
+    - name: bttr-client
+      urls:
+        - http://web:4200
+      includePaths:
+        - 'http://web:4200/.*'
+      authentication:
+        method: browser
+        parameters:
+          loginPageUrl: http://web:4200/
+          loginPageWait: 3
+          browserId: firefox-headless
+        verification:
+          method: autodetect
+      sessionManagement:
+        method: autodetect
+        parameters: {}
+      users:
+        - name: mock-user
+          credentials:
+            username: mock.user@bttr.local
+            password: Mock@123
+  parameters:
+    failOnError: true
+    failOnWarning: false
+    continueOnFailure: false
+    progressToStdout: true
+
+jobs:
+  - type: requestor
+    requests:
+      - name: página de login
+        url: http://web:4200/
+        method: GET
+        responseCode: 200
+      - name: página de cadastro
+        url: http://web:4200/sign-up
+        method: GET
+        responseCode: 200
+      - name: recuperação de senha
+        url: http://web:4200/forgot-password
+        method: GET
+        responseCode: 200
+
+  - type: spider
+    parameters:
+      context: bttr-client
+      user: mock-user
+      url: http://web:4200/
+      maxDuration: 2
+
+  - type: spiderClient
+    parameters:
+      context: bttr-client
+      user: mock-user
+      url: http://web:4200/
+      browserId: firefox-headless
+      maxDuration: 3
+      maxCrawlDepth: 5
+      numberOfBrowsers: 1
+      initialLoadTime: 2
+      pageLoadTime: 1
+      actionWaitTime: 1
+      shutdownTime: 3
+      scopeCheck: Strict
+
+  - type: passiveScan-wait
+    parameters:
+      maxDuration: 3
+
+  - type: activeScan
+    parameters:
+      context: bttr-client
+      policy: Dev CICD
+      maxRuleDurationInMins: 1
+      maxScanDurationInMins: 5
+      threadPerHost: 4
+      maxAlertsPerRule: 20
+
+  - type: passiveScan-wait
+    parameters:
+      maxDuration: 2
+
+  - type: report
+    parameters:
+      template: traditional-html
+      reportDir: /zap/wrk
+      reportFile: zap-report
+      reportTitle: Bttr Client - OWASP ZAP
+      reportDescription: Scan autenticado do build de produção Angular
+      displayReport: false
+
+  - type: report
+    parameters:
+      template: traditional-json
+      reportDir: /zap/wrk
+      reportFile: zap-report-traditional
+      reportTitle: Bttr Client - OWASP ZAP
+      displayReport: false
+
+  - type: report
+    parameters:
+      template: sarif-json
+      reportDir: /zap/wrk
+      reportFile: zap-report-sarif
+      reportTitle: Bttr Client - OWASP ZAP
+      displayReport: false
+
+  - type: exitStatus
+    parameters:
+      errorLevel: High
+      warnLevel: Medium
+      okExitValue: 0
+      errorExitValue: 1
+      warnExitValue: 0

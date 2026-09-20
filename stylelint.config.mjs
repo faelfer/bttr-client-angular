@@ -6,7 +6,9 @@ export default {
     'dist/**',
     '.angular/**',
     'coverage/**',
+    'lighthouse-report/**',
     'playwright-report/**',
+    'security-reports/**',
     'test-results/**',
   ],
   rules: {
