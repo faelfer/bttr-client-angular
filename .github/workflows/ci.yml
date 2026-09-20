@@ -19,8 +19,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run test:coverage
       - run: npm run build
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
+      # O E2E depende do mock no GitLab e é executado pelo Jenkinsfile.
       - uses: actions/upload-artifact@v4
         if: always()
         with:

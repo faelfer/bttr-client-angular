@@ -98,19 +98,31 @@ npm run test:e2e
 
 O ESLint usa análise tipada estrita para TypeScript e as regras recomendadas de código, templates e acessibilidade do Angular. O Stylelint valida o CSS com a configuração padrão, enquanto o Prettier permanece responsável exclusivamente pela formatação. `npm run format` formata os arquivos e `npm run lint:fix` aplica as correções automáticas dos dois linters.
 
-`npm run ci` executa formatação, lint, checagem de tipos e Jest com cobertura. O `Jenkinsfile` chama esse mesmo fluxo pelo serviço `ci` de `compose.ci.yaml`. `npm run check` acrescenta build e Playwright à validação local completa; instale o navegador antes.
+`npm run ci` executa formatação, lint, checagem de tipos e Jest com cobertura. O `Jenkinsfile` chama esse mesmo fluxo pelo serviço `ci` de `compose.ci.yaml`. Em seguida, o pipeline obtém o `bttr-server` do GitLab, constrói sua imagem WireMock e executa o Playwright com `compose.e2e.yaml`.
 
 Jest verifica contratos HTTP (métodos, caminhos, payloads e parâmetros), sessão, interceptor, guardas, validações, datas e estatísticas. Playwright testa login, cadastro, recuperação, perfil, troca de senha, exclusões, CRUD de habilidades e tempos, paginação, estatísticas, erros, estados vazios e layout em Chromium desktop e celular.
 
-Os testes E2E iniciam o servidor Angular automaticamente e interceptam a API com dados isolados por teste. **Não dependem do backend nem validam a integração real com Keycloak, PostgreSQL ou e-mail.** Para essa validação, execute a aplicação com o backend local e realize os mesmos fluxos.
+Os testes E2E iniciam o servidor Angular automaticamente e consultam por HTTP a imagem WireMock mantida em `bttr-server/mock-api`. Cada teste restaura os mappings, cenários e requisições do WireMock para manter o isolamento. A suíte valida a integração do navegador com o contrato simulado, mas **não executa Quarkus, Keycloak, PostgreSQL ou e-mail reais**.
 
-Se já tiver Chromium/Chrome instalado, pode dispensar o download do Playwright:
+Com `bttr-server` no diretório irmão, execute o mesmo ambiente usado pelo Jenkins:
 
 ```bash
-PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/google-chrome npm run test:e2e
+export CI_UID="$(id -u)" CI_GID="$(id -g)"
+docker compose -f compose.e2e.yaml run --rm e2e
+docker compose -f compose.e2e.yaml down --remove-orphans
 ```
 
-Relatórios: `coverage/` (Jest), `playwright-report/` (E2E), `test-results/` (capturas e traces de falhas). Abra o relatório com `npm run test:e2e:report`. A integração contínua está em [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+Por padrão, a execução local usa `../bttr-server/mock-api`. No Jenkins, os parâmetros `BTTR_SERVER_REPOSITORY` e `BTTR_SERVER_BRANCH` controlam o checkout em `.ci/bttr-server`.
+
+Para executar fora do Compose, suba `../bttr-server/compose.mock.yaml` na porta 8090 e instale o Chromium do Playwright:
+
+```bash
+docker compose -f ../bttr-server/compose.mock.yaml up -d --build mock-api
+npx playwright install chromium
+npm run test:e2e
+```
+
+Relatórios: `coverage/` (Jest), `playwright-report/` (E2E), `test-results/` (JUnit, capturas e traces de falhas). Abra o relatório com `npm run test:e2e:report`. O E2E integrado ao mock privado do GitLab é executado pelo Jenkins; o [workflow do GitHub](.github/workflows/ci.yml) mantém as verificações exclusivas do frontend.
 
 ## Build e publicação
 
