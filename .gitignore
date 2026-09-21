@@ -3,6 +3,7 @@ dist/
 out-tsc/
 .angular/
 coverage/
+.scannerwork/
 playwright-report/
 test-results/
 lighthouse-report/

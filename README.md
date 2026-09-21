@@ -103,6 +103,23 @@ O ESLint usa análise tipada estrita para TypeScript e as regras recomendadas de
 
 `npm run ci` executa formatação, lint, checagem de tipos e Jest com cobertura. O `Jenkinsfile` chama esse mesmo fluxo pelo serviço `ci` de `compose.ci.yaml`. Em seguida, o pipeline obtém o `bttr-server` do GitLab, constrói sua imagem WireMock e executa o Playwright com `compose.e2e.yaml`. O build de produção valida os budgets do Angular e o Lighthouse CI mede as rotas públicas três vezes pelo serviço `lighthouse` de `compose.performance.yaml`. Por último, a etapa `Security scans` executa o fluxo reproduzível de `compose.security.yaml`.
 
+O SonarScanner CLI oficial está fixado no serviço `sonar-scanner` de
+[`compose.ci.yaml`](compose.ci.yaml) e configurado em
+[`sonar-project.properties`](sonar-project.properties). A análise usa a chave
+`bttr-client-angular`, o nome `BTTR Client Angular` e importa a cobertura Jest de
+`coverage/lcov.info`. Para enviar uma análise manual, gere um token com permissão
+**Execute Analysis** e execute:
+
+```bash
+export SONAR_HOST_URL=http://host.docker.internal:9000
+export SONAR_TOKEN='<token>'
+npm run test:coverage -- --ci
+docker compose -f compose.ci.yaml run --rm sonar-scanner
+```
+
+O token é um segredo e não deve ser adicionado ao `.env`, ao `package.json` nem ao
+repositório.
+
 O Lighthouse CI permanece fixado em `0.15.1`. Os overrides atualizam Lighthouse e dependências transitivas vulneráveis sem alterar a interface do runner; remova-os quando uma versão do `@lhci/cli` já incorporar essas correções.
 
 Jest verifica contratos HTTP (métodos, caminhos, payloads e parâmetros), sessão, interceptor, guardas, validações, datas e estatísticas. Playwright testa login, cadastro, recuperação, perfil, troca de senha, exclusões, CRUD de habilidades e tempos, paginação, estatísticas, erros, estados vazios e layout em Chromium desktop e celular. A especificação `e2e/security.spec.ts` acrescenta regressões contra redirecionamento aberto, XSS e vazamento do token; ela faz parte da suíte completa e pode ser executada isoladamente com `npm run test:e2e:security`.
@@ -136,7 +153,29 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-Relatórios: `coverage/` (Jest), `playwright-report/` (E2E), `test-results/` (JUnit, capturas e traces de falhas), `lighthouse-report/` (HTML/JSON de performance) e `security-reports/` (npm audit, Trivy, Gitleaks e ZAP em JSON, HTML ou SARIF). Abra o relatório E2E com `npm run test:e2e:report`. O Lighthouse exige nota de performance mínima de 0,8, LCP de até 3,5 s, CLS de até 0,1 e TBT de até 300 ms, considerando a mediana de três execuções. O limite inicial de LCP acompanha a baseline atual de aproximadamente 3,1 s e deve ser reduzido gradualmente até a meta de 2,5 s. O E2E integrado ao mock privado do GitLab é executado pelo Jenkins; o [workflow do GitHub](.github/workflows/ci.yml) mantém as verificações exclusivas do frontend.
+Relatórios: `coverage/` (Jest e entrada LCOV do SonarQube), `playwright-report/` (E2E), `test-results/` (JUnit, capturas e traces de falhas), `lighthouse-report/` (HTML/JSON de performance) e `security-reports/` (npm audit, Trivy, Gitleaks e ZAP em JSON, HTML ou SARIF). Abra o relatório E2E com `npm run test:e2e:report`. O Lighthouse exige nota de performance mínima de 0,8, LCP de até 3,5 s, CLS de até 0,1 e TBT de até 300 ms, considerando a mediana de três execuções. O limite inicial de LCP acompanha a baseline atual de aproximadamente 3,1 s e deve ser reduzido gradualmente até a meta de 2,5 s. O E2E integrado ao mock privado do GitLab é executado pelo Jenkins; o [workflow do GitHub](.github/workflows/ci.yml) mantém as verificações exclusivas do frontend.
+
+### Pipeline Jenkins
+
+Após `Quality and unit tests` gerar o LCOV, a etapa **SonarQube Analysis** executa o
+serviço `sonar-scanner` e publica o status `sonarqube` no GitLab. A etapa **Quality Gate**
+aguarda o processamento por até 10 minutos e interrompe o pipeline se o gate não for
+aprovado. As demais etapas E2E, performance e segurança só começam depois da aprovação.
+
+O agente Jenkins precisa dos plugins Pipeline, GitLab e **SonarQube Scanner for
+Jenkins**. Em **Manage Jenkins > System > SonarQube installations**, cadastre o servidor
+com o nome exato `SonarQube Local` e associe uma credencial **Secret text** contendo o
+token de análise. A URL precisa ser acessível pelo Jenkins e pelo contêiner
+`sonar-scanner`; não use `localhost` quando Jenkins e SonarQube estiverem em contêineres
+distintos.
+
+Durante a análise, [`compose.jenkins.yaml`](compose.jenkins.yaml) conecta o serviço
+`sonar-scanner` à rede externa `infraestrutura-network`. Defina
+`CI_INFRASTRUCTURE_NETWORK` no agente se a infraestrutura usar outro nome. Para liberar a
+etapa **Quality Gate**, configure no SonarQube um webhook para
+`<URL_DO_JENKINS>/sonarqube-webhook/`, incluindo a barra final. O pipeline injeta URL e
+token com `withSonarQubeEnv('SonarQube Local')`; o scanner vem da imagem oficial e não
+precisa ser instalado globalmente no Jenkins.
 
 ## Build e publicação
 
