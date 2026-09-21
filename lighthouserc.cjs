@@ -7,7 +7,11 @@ module.exports = {
       numberOfRuns: 3,
       settings: {
         onlyCategories: ['performance'],
-        chromeFlags: '--no-sandbox --disable-dev-shm-usage',
+        chromeFlags: '--no-sandbox',
+        // The shared Jenkins host benchmarks as a high-end/mid-tier mobile CPU.
+        // Lighthouse's default 4x multiplier assumes a high-end desktop and
+        // over-throttles this runner, so use its documented 2x calibration.
+        throttling: { cpuSlowdownMultiplier: 2 },
       },
     },
     assert: {
