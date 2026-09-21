@@ -33,6 +33,7 @@ services:
     user: '${CI_UID:-1000}:${CI_GID:-1000}'
     environment:
       HOME: /tmp
+      SCANNER_WORKDIR_PATH: /usr/src/.scannerwork
       SONAR_HOST_URL: '${SONAR_HOST_URL:-}'
       SONAR_TOKEN: '${SONAR_TOKEN:-}'
       SONAR_USER_HOME: /tmp/.sonar
