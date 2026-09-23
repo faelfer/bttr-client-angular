@@ -1,0 +1,8 @@
+{
+  "id": 0,
+  "username": "Pessoa duplicada",
+  "email": "duplicate@example.com",
+  "password": "SenhaLonga123!",
+  "created": "2026-01-01T10:00:00Z",
+  "token": ""
+}

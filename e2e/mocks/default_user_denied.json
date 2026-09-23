@@ -1,0 +1,8 @@
+{
+  "id": 0,
+  "username": "invalid.user",
+  "email": "invalid@example.com",
+  "password": "invalid",
+  "created": "2026-01-01T10:00:00Z",
+  "token": ""
+}

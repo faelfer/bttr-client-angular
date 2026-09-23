@@ -122,9 +122,21 @@ repositório.
 
 O Lighthouse CI permanece fixado em `0.15.1`. Os overrides atualizam Lighthouse e dependências transitivas vulneráveis sem alterar a interface do runner; remova-os quando uma versão do `@lhci/cli` já incorporar essas correções.
 
-Jest verifica contratos HTTP (métodos, caminhos, payloads e parâmetros), sessão, interceptor, guardas, validações, datas e estatísticas. Playwright testa login, cadastro, recuperação, perfil, troca de senha, exclusões, CRUD de habilidades e tempos, paginação, estatísticas, erros, estados vazios e layout em Chromium desktop e celular. A especificação `e2e/security.spec.ts` acrescenta regressões contra redirecionamento aberto, XSS e vazamento do token; ela faz parte da suíte completa e pode ser executada isoladamente com `npm run test:e2e:security`.
+Jest verifica contratos HTTP (métodos, caminhos, payloads e parâmetros), sessão, interceptor, guardas, validações, datas e estatísticas. Playwright testa login, cadastro, recuperação, perfil, troca de senha, exclusões, CRUD de habilidades e tempos, paginação, estatísticas, erros, estados vazios e layout em Chromium desktop e celular. A especificação `e2e/specs/security.spec.ts` acrescenta regressões contra redirecionamento aberto, XSS e vazamento do token; ela faz parte da suíte completa e pode ser executada isoladamente com `npm run test:e2e:security`.
 
 Os testes E2E iniciam o servidor Angular automaticamente e consultam por HTTP a imagem WireMock mantida em `bttr-server/mock-api`. Cada teste restaura os mappings, cenários e requisições do WireMock para manter o isolamento. A suíte valida a integração do navegador com o contrato simulado, mas **não executa Quarkus, Keycloak, PostgreSQL ou e-mail reais**.
+
+A suíte é organizada por responsabilidade, no mesmo padrão adotado no `cialne-agro-portal`:
+
+- `e2e/specs`: um arquivo por tela, com os testes descritos em português.
+- `e2e/scenarios`: fluxos de formulário reaproveitados (acessar, cadastrar, alterar perfil, registrar tempo, confirmar exclusão).
+- `e2e/customs`: conferências e utilitários de uma responsabilidade só (estar na tela, mensagem de erro, toast de sucesso, sessão encerrada) e o acesso ao admin do WireMock (reset, stub temporário, corpo da requisição enviada).
+- `e2e/factories`: construção dos dados de teste a partir dos mocks, com uma chave por variação (`default`, `update`, `create`, `denied`, `conflict`).
+- `e2e/mocks`: os registros que o contrato simulado conhece, em JSON. Como o WireMock mantém o estado do cenário, os valores são fixos: nomes ou identificadores fora dessa lista fazem o mock responder 409.
+- `e2e/setup`: `prepareMockApi.ts` confere a saúde do mock antes da suíte começar, para que uma falha de ambiente apareça uma vez e com a instrução de correção, em vez de reprovar cada arquivo separadamente.
+- `e2e/reporters`: `failFastReporter.ts` separa falha real, `test.fixme`, pré requisito não atendido e teste que não chegou a executar. Os dois últimos reprovam a execução mesmo sem falha, porque deixam uma tela sem validação nenhuma; o resumo fica em `test-results/fail-fast-summary.json`.
+
+O `maxFailures: 1` interrompe a suíte na primeira falha inesperada — um teste ignorado não entra nessa conta, quem o trata é o reporter fail-fast.
 
 Com `bttr-server` no diretório irmão, execute o mesmo ambiente usado pelo Jenkins:
 
@@ -233,7 +245,7 @@ que exige renderizar o `index.html` no servidor.
 - `src/app/core`: modelos, configuração, serviços HTTP, sessão e autorização.
 - `src/app/shared`: layout, estados de tela, validações e cálculos compartilhados.
 - `src/app/features`: páginas agrupadas por autenticação, perfil, habilidades e tempos.
-- `e2e`: testes Playwright e simulação do contrato da API.
+- `e2e`: testes Playwright divididos em `specs`, `scenarios`, `customs`, `factories`, `mocks`, `setup` e `reporters`.
 - `public`: configuração de execução e ícone da aplicação.
 
 Referências técnicas: [compatibilidade do Angular](https://angular.dev/reference/versions), [instalação do PrimeNG](https://primeng.org/installation), [Jest Preset Angular](https://thymikee.github.io/jest-preset-angular/) e [Playwright](https://playwright.dev/docs/intro).

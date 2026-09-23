@@ -15,7 +15,7 @@
     "test-unit-coverage": "npm run test:coverage",
     "test:e2e": "playwright test",
     "test-e2e": "npm run test:e2e",
-    "test:e2e:security": "playwright test e2e/security.spec.ts",
+    "test:e2e:security": "playwright test e2e/specs/security.spec.ts",
     "test:e2e:report": "playwright show-report",
     "test:lighthouse": "lhci autorun",
     "test:lighthouse:ci": "npm run build && npm run test:lighthouse && node scripts/lighthouse-benchmark.mjs",

@@ -1,0 +1,8 @@
+{
+  "id": 1,
+  "username": "Mock User",
+  "email": "mock.user@bttr.local",
+  "password": "NovaSenha123!",
+  "created": "2026-01-01T10:00:00Z",
+  "token": "mock-access-token"
+}
