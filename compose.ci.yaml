@@ -18,7 +18,7 @@ services:
     command:
       - sh
       - -c
-      - npm ci && npm run ci
+      - npm ci && npm run ci && npm run build
 
   unit-tests:
     <<: *node-service

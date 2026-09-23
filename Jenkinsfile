@@ -4,6 +4,7 @@ pipeline {
     options {
         disableConcurrentBuilds()
         skipDefaultCheckout(true)
+        gitlabBuilds(builds: ['ci'])
     }
 
     parameters {
@@ -32,6 +33,7 @@ pipeline {
             steps {
                 deleteDir()
                 checkout scm
+                updateGitlabCommitStatus name: 'ci', state: 'running'
             }
         }
 
@@ -241,6 +243,15 @@ pipeline {
                 testResults: 'test-results/e2e-junit.xml'
             archiveArtifacts allowEmptyArchive: true,
                 artifacts: 'coverage/**,playwright-report/**,test-results/**,lighthouse-report/**,security-reports/**'
+        }
+        success {
+            updateGitlabCommitStatus name: 'ci', state: 'success'
+        }
+        failure {
+            updateGitlabCommitStatus name: 'ci', state: 'failed'
+        }
+        aborted {
+            updateGitlabCommitStatus name: 'ci', state: 'canceled'
         }
     }
 }

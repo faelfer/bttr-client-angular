@@ -101,7 +101,7 @@ npm run security:audit
 
 O ESLint usa análise tipada estrita para TypeScript e as regras recomendadas de código, templates e acessibilidade do Angular. O Stylelint valida o CSS com a configuração padrão, enquanto o Prettier permanece responsável exclusivamente pela formatação. `npm run format` formata os arquivos e `npm run lint:fix` aplica as correções automáticas dos dois linters.
 
-`npm run ci` executa formatação, lint, checagem de tipos e Jest com cobertura. O `Jenkinsfile` chama esse mesmo fluxo pelo serviço `ci` de `compose.ci.yaml`. Em seguida, o pipeline obtém o `bttr-server` do GitLab, constrói sua imagem WireMock e executa o Playwright com `compose.e2e.yaml`. O build de produção valida os budgets do Angular e o Lighthouse CI mede as rotas públicas três vezes pelo serviço `lighthouse` de `compose.performance.yaml`. Por último, a etapa `Security scans` executa o fluxo reproduzível de `compose.security.yaml`.
+`npm run ci` executa formatação, lint, checagem de tipos e Jest com cobertura. O `Jenkinsfile` chama esse mesmo fluxo pelo serviço `ci` de `compose.ci.yaml`, que também executa o build de produção e valida os budgets do Angular. Em seguida, o pipeline obtém o `bttr-server` do GitLab, constrói sua imagem WireMock e executa o Playwright com `compose.e2e.yaml`. O Lighthouse CI mede as rotas públicas três vezes pelo serviço `lighthouse` de `compose.performance.yaml`. Por último, a etapa `Security scans` executa o fluxo reproduzível de `compose.security.yaml`.
 
 O SonarScanner CLI oficial está fixado no serviço `sonar-scanner` de
 [`compose.ci.yaml`](compose.ci.yaml) e configurado em
@@ -153,9 +153,24 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-Relatórios: `coverage/` (Jest e entrada LCOV do SonarQube), `playwright-report/` (E2E), `test-results/` (JUnit, capturas e traces de falhas), `lighthouse-report/` (HTML/JSON de performance) e `security-reports/` (npm audit, Trivy, Gitleaks e ZAP em JSON, HTML ou SARIF). Abra o relatório E2E com `npm run test:e2e:report`. O Lighthouse exige nota de performance mínima de 0,8, LCP de até 3,5 s, CLS de até 0,1 e TBT de até 300 ms, considerando a mediana de três execuções. O limite inicial de LCP acompanha a baseline atual de aproximadamente 3,1 s e deve ser reduzido gradualmente até a meta de 2,5 s. O E2E integrado ao mock privado do GitLab é executado pelo Jenkins; o [workflow do GitHub](.github/workflows/ci.yml) mantém as verificações exclusivas do frontend.
+Relatórios: `coverage/` (Jest e entrada LCOV do SonarQube), `playwright-report/` (E2E), `test-results/` (JUnit, capturas e traces de falhas), `lighthouse-report/` (HTML/JSON de performance) e `security-reports/` (npm audit, Trivy, Gitleaks e ZAP em JSON, HTML ou SARIF). Abra o relatório E2E com `npm run test:e2e:report`. O Lighthouse exige nota de performance mínima de 0,8, LCP de até 3,5 s, CLS de até 0,1 e TBT de até 300 ms, considerando a mediana de três execuções. O limite inicial de LCP acompanha a baseline atual de aproximadamente 3,1 s e deve ser reduzido gradualmente até a meta de 2,5 s. O Jenkins executa as verificações do frontend e o E2E integrado ao mock privado do GitLab.
 
 ### Pipeline Jenkins
+
+Após importar o repositório para o GitLab, configure o job como **Pipeline from SCM**,
+apontando para o repositório no GitLab e usando `Jenkinsfile` como **Script Path**. Ative a
+integração Jenkins em **Settings > Integrations > Jenkins** no projeto GitLab para disparar
+o job em pushes e merge requests.
+Execute o job manualmente uma vez para registrar os gatilhos do `Jenkinsfile`. O plugin
+GitLab publica os estados das etapas `quality`, `sonarqube`, `e2e`, `performance` e
+`security` nos commits. O status geral `ci` só é aprovado após todas as etapas, inclusive
+o Quality Gate. Nesse arranjo, o GitLab envia os eventos e o Jenkins executa o pipeline
+definido neste repositório.
+
+No Jenkins, configure a conexão GitLab com URL e token de API para publicar os status.
+Configure separadamente as credenciais Git de leitura para este repositório e para o
+`bttr-server`, usado no checkout do mock. A integração do GitLab aponta para o job Jenkins;
+o pipeline é mantido no `Jenkinsfile`.
 
 Após `Quality and unit tests` gerar o LCOV, a etapa **SonarQube Analysis** executa o
 serviço `sonar-scanner` e publica o status `sonarqube` no GitLab. A etapa **Quality Gate**
