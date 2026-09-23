@@ -2,7 +2,7 @@
 
 :root {
   --ink: #213b32;
-  --muted: #738078;
+  --muted: #616e66;
   --green: #14634c;
   --line: #e5eae5;
   --surface: #f7f9f6;
@@ -410,7 +410,7 @@ small {
   position: absolute;
   bottom: 2rem;
   font-size: 0.7rem;
-  color: #929d94;
+  color: var(--muted);
 }
 
 .sidebar {
@@ -1456,4 +1456,10 @@ tr:last-child td {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* O PrimeNG mantém o host do confirm dialog no DOM quando ele está fechado.
+   Vazio e sem nome acessível, ele é exposto como um alertdialog anônimo. */
+p-confirmdialog p-dialog:empty {
+  display: none;
 }

@@ -5,6 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { PageState } from '../../shared/page-state';
 import { FieldErrorComponent } from '../../shared/field-error.component';
+import { FieldDirective } from '../../shared/field.directive';
 import { StatusComponent } from '../../shared/status.component';
 import { nonBlank } from '../../shared/validators';
 import { SessionService } from '../../core/session.service';
@@ -16,6 +17,7 @@ import { SessionService } from '../../core/session.service';
     ButtonModule,
     InputTextModule,
     FieldErrorComponent,
+    FieldDirective,
     StatusComponent,
   ],
   template: `
@@ -43,9 +45,11 @@ import { SessionService } from '../../core/session.service';
               ><input
                 pInputText
                 id="username"
+                [appField]="form.controls.username"
                 formControlName="username"
                 autocomplete="username"
               /><app-field-error
+                field="username"
                 [control]="form.controls.username"
                 message="Informe um nome entre 2 e 100 caracteres."
               />
@@ -55,10 +59,12 @@ import { SessionService } from '../../core/session.service';
               ><input
                 pInputText
                 id="email"
+                [appField]="form.controls.email"
                 type="email"
                 formControlName="email"
                 autocomplete="email"
               /><app-field-error
+                field="email"
                 [control]="form.controls.email"
                 message="Informe um e-mail válido."
               />

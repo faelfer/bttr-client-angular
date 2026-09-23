@@ -6,6 +6,8 @@ import prettier from 'eslint-config-prettier';
 export default tseslint.config(
   {
     ignores: [
+      // O Jenkins faz checkout do bttr-server aqui; ele tem o próprio pipeline.
+      '.ci/**',
       'node_modules/**',
       'dist/**',
       '.angular/**',

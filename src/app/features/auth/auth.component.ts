@@ -6,6 +6,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PageState } from '../../shared/page-state';
 import { StatusComponent } from '../../shared/status.component';
 import { FieldErrorComponent } from '../../shared/field-error.component';
+import { FieldDirective } from '../../shared/field.directive';
 import { nonBlank, passwordValidators } from '../../shared/validators';
 import { SessionService } from '../../core/session.service';
 import { safeReturnUrl } from '../../core/auth';
@@ -25,6 +26,7 @@ function authMode(value: unknown): AuthMode {
     InputTextModule,
     StatusComponent,
     FieldErrorComponent,
+    FieldDirective,
   ],
   templateUrl: './auth.component.html',
 })

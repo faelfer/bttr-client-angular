@@ -40,6 +40,7 @@ trivy fs \
   --no-progress \
   --scanners vuln,secret,misconfig \
   --skip-dirs /workspace/.angular \
+  --skip-dirs /workspace/.ci \
   --skip-dirs /workspace/.git \
   --skip-dirs /workspace/coverage \
   --skip-dirs /workspace/dist \

@@ -6,6 +6,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { PageState } from '../../shared/page-state';
 import { FieldErrorComponent } from '../../shared/field-error.component';
+import { FieldDirective } from '../../shared/field.directive';
 import { StatusComponent } from '../../shared/status.component';
 import { minutesValidator } from '../../shared/validators';
 import { Skill } from '../../core/models';
@@ -18,6 +19,7 @@ import { Skill } from '../../core/models';
     InputTextModule,
     SelectModule,
     FieldErrorComponent,
+    FieldDirective,
     StatusComponent,
   ],
   template: `
@@ -52,6 +54,7 @@ import { Skill } from '../../core/models';
                   ariaFilterLabel="Buscar habilidade"
                   appendTo="body"
                 /><app-field-error
+                  field="skill"
                   [control]="form.controls.skill_id"
                   message="Selecione uma habilidade."
                 />
@@ -61,6 +64,7 @@ import { Skill } from '../../core/models';
                 ><input
                   pInputText
                   id="minutes"
+                  [appField]="form.controls.minutes"
                   formControlName="minutes"
                   type="number"
                   min="1"
@@ -69,6 +73,7 @@ import { Skill } from '../../core/models';
                   placeholder="Ex.: 25"
                 /><small>O registro usa a data atual. A edição preserva a data original.</small
                 ><app-field-error
+                  field="minutes"
                   [control]="form.controls.minutes"
                   message="Informe minutos inteiros entre 1 e 1440."
                 />

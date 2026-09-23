@@ -5,6 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { PageState } from '../../shared/page-state';
 import { FieldErrorComponent } from '../../shared/field-error.component';
+import { FieldDirective } from '../../shared/field.directive';
 import { StatusComponent } from '../../shared/status.component';
 import { minutesValidator, nonBlank } from '../../shared/validators';
 @Component({
@@ -15,6 +16,7 @@ import { minutesValidator, nonBlank } from '../../shared/validators';
     ButtonModule,
     InputTextModule,
     FieldErrorComponent,
+    FieldDirective,
     StatusComponent,
   ],
   template: `
@@ -38,10 +40,12 @@ import { minutesValidator, nonBlank } from '../../shared/validators';
               ><input
                 pInputText
                 id="name"
+                [appField]="form.controls.name"
                 formControlName="name"
                 placeholder="Ex.: Inglês, programação, violão…"
                 maxlength="120"
               /><app-field-error
+                field="name"
                 [control]="form.controls.name"
                 message="Informe um nome entre 2 e 120 caracteres."
               />
@@ -51,6 +55,7 @@ import { minutesValidator, nonBlank } from '../../shared/validators';
               ><input
                 pInputText
                 id="daily"
+                [appField]="form.controls.daily"
                 type="number"
                 formControlName="daily"
                 min="1"
@@ -59,6 +64,7 @@ import { minutesValidator, nonBlank } from '../../shared/validators';
                 placeholder="Ex.: 30"
               /><small>Tempo que você deseja dedicar em cada dia útil.</small
               ><app-field-error
+                field="daily"
                 [control]="form.controls.daily"
                 message="Informe minutos inteiros entre 1 e 1440."
               />

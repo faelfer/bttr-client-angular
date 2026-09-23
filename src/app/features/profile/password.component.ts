@@ -6,6 +6,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PageState } from '../../shared/page-state';
 import { StatusComponent } from '../../shared/status.component';
 import { FieldErrorComponent } from '../../shared/field-error.component';
+import { FieldDirective } from '../../shared/field.directive';
 import { passwordMatch, passwordValidators } from '../../shared/validators';
 @Component({
   selector: 'app-password',
@@ -16,6 +17,7 @@ import { passwordMatch, passwordValidators } from '../../shared/validators';
     InputTextModule,
     StatusComponent,
     FieldErrorComponent,
+    FieldDirective,
   ],
   template: `
     <a class="back-link" routerLink="/profile"
@@ -36,10 +38,12 @@ import { passwordMatch, passwordValidators } from '../../shared/validators';
           ><input
             pInputText
             id="current"
+            [appField]="form.controls.password"
             type="password"
             autocomplete="current-password"
             formControlName="password"
           /><app-field-error
+            field="current"
             [control]="form.controls.password"
             message="Informe sua senha atual."
           />
@@ -49,11 +53,13 @@ import { passwordMatch, passwordValidators } from '../../shared/validators';
           ><input
             pInputText
             id="new"
+            [appField]="form.controls.new_password"
             type="password"
             autocomplete="new-password"
             formControlName="new_password"
           /><small>De 4 a 128 caracteres, com maiúscula, minúscula, número e símbolo.</small
           ><app-field-error
+            field="new"
             [control]="form.controls.new_password"
             message="A nova senha deve atender aos requisitos acima."
           />
@@ -63,10 +69,12 @@ import { passwordMatch, passwordValidators } from '../../shared/validators';
           ><input
             pInputText
             id="confirm"
+            [appField]="form.controls.confirmation"
             type="password"
             autocomplete="new-password"
             formControlName="confirmation"
           /><app-field-error
+            field="confirm"
             [control]="form.controls.confirmation"
             message="Confirme sua nova senha."
           />

@@ -153,7 +153,7 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-Relatórios: `coverage/` (Jest e entrada LCOV do SonarQube), `playwright-report/` (E2E), `test-results/` (JUnit, capturas e traces de falhas), `lighthouse-report/` (HTML/JSON de performance) e `security-reports/` (npm audit, Trivy, Gitleaks e ZAP em JSON, HTML ou SARIF). Abra o relatório E2E com `npm run test:e2e:report`. O Lighthouse exige nota de performance mínima de 0,8, LCP de até 3,5 s, CLS de até 0,1 e TBT de até 300 ms, considerando a mediana de três execuções. O limite inicial de LCP acompanha a baseline atual de aproximadamente 3,1 s e deve ser reduzido gradualmente até a meta de 2,5 s. O Jenkins executa as verificações do frontend e o E2E integrado ao mock privado do GitLab.
+Relatórios: `coverage/` (Jest e entrada LCOV do SonarQube), `playwright-report/` (E2E), `test-results/` (JUnit, capturas e traces de falhas), `lighthouse-report/` (HTML/JSON de performance) e `security-reports/` (npm audit, Trivy, Gitleaks e ZAP em JSON, HTML ou SARIF). Abra o relatório E2E com `npm run test:e2e:report`. O Lighthouse exige nota de performance mínima de 0,8, nota de acessibilidade 1,0 (as rotas públicas estão em 100), LCP de até 3,5 s, CLS de até 0,1 e TBT de até 300 ms, considerando a mediana de três execuções. Ao final, `scripts/lighthouse-benchmark.mjs` registra no log o `benchmarkIndex` do agente — é esse número que justifica o `cpuSlowdownMultiplier` de `lighthouserc.cjs`; revalide a calibração sempre que a mediana registrada mudar de patamar. O limite inicial de LCP acompanha a baseline atual de aproximadamente 3,1 s e deve ser reduzido gradualmente até a meta de 2,5 s. O Jenkins executa as verificações do frontend e o E2E integrado ao mock privado do GitLab.
 
 ### Pipeline Jenkins
 
@@ -201,6 +201,32 @@ npm run build
 Os arquivos estáticos ficam em `dist/bttr/browser`. Sirva esse diretório e configure fallback das rotas do frontend para `index.html`.
 
 O proxy do Angular CLI **não faz parte do build**. Em produção, configure um proxy reverso `/api/` para a API ou altere `dist/bttr/browser/config.json` para sua URL absoluta e ajuste CORS. A configuração pode ser alterada sem recompilar. Mantenha `config.json` sem cache persistente e preserve o roteamento dos recursos estáticos.
+
+### Cabeçalhos de segurança
+
+O que o OWASP ZAP aprova no pipeline é o conjunto de cabeçalhos aplicado por
+[`security/server.mjs`](security/server.mjs) — servir o build sem eles publica uma aplicação
+diferente da que foi auditada. Como o token de sessão fica em `localStorage`, é a CSP que limita
+o impacto de um XSS, então ela **não é opcional**.
+
+[`deploy/nginx.conf`](deploy/nginx.conf) e
+[`deploy/security-headers.conf`](deploy/security-headers.conf) reproduzem esse contrato para o
+servidor real: CSP, COOP, CORP, Permissions-Policy, Referrer-Policy, `X-Content-Type-Options` e
+`X-Frame-Options`, mais o fallback do SPA, `no-store` em `index.html` e `config.json` e cache
+imutável nos bundles com hash.
+
+```bash
+docker run --rm -p 8080:8080 \
+  -v "$PWD/deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro" \
+  -v "$PWD/deploy/security-headers.conf:/etc/nginx/conf.d/security-headers.conf:ro" \
+  -v "$PWD/dist/bttr/browser:/usr/share/nginx/html:ro" nginx:1.29-alpine
+```
+
+Ao alterar os cabeçalhos, altere os três arquivos juntos — `security/server.mjs` é o que o ZAP
+mede. Se `apiUrl` passar a ser uma URL absoluta, acrescente essa origem ao `connect-src`. O
+`style-src 'unsafe-inline'` é o único alerta médio que o ZAP reporta hoje: o Angular injeta
+estilos inline e só sai dele com [`ngCspNonce`](https://angular.dev/best-practices/security),
+que exige renderizar o `index.html` no servidor.
 
 ## Estrutura
 

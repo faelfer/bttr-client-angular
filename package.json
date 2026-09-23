@@ -18,7 +18,7 @@
     "test:e2e:security": "playwright test e2e/security.spec.ts",
     "test:e2e:report": "playwright show-report",
     "test:lighthouse": "lhci autorun",
-    "test:lighthouse:ci": "npm run build && npm run test:lighthouse",
+    "test:lighthouse:ci": "npm run build && npm run test:lighthouse && node scripts/lighthouse-benchmark.mjs",
     "lint": "npm run lint:code && npm run lint:styles",
     "lint:code": "eslint .",
     "lint:styles": "stylelint \"src/**/*.css\"",
